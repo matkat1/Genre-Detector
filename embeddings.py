@@ -10,7 +10,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
 drive.mount('/content/drive')
 
-path = '/content/drive/MyDrive/data/'
+path = '/content/drive/MyDrive/Genre_Detector/data/'
 
 def get_tfidf(df, max_features):
 
@@ -96,8 +96,23 @@ def get_w2v300(df):
         return all_w2v_vectors
 
 
-
-
+def get_features(df, embedding_method="w2v", max_features=300):
+    embedding_method = embedding_method.lower().strip()
+    
+    if embedding_method == "w2v":
+        print("Extracting/Loading Word2Vec (300 dims)...")
+        return get_w2v300(df)
+        
+    elif embedding_method == "tfidf":
+        print(f"Extracting/Loading TF-IDF (max_features={max_features})...")
+        return get_tfidf(df, max_features=max_features)
+        
+    elif embedding_method == "bow":
+        print(f"Extracting/Loading Bag of Words (max_features={max_features})...")
+        return get_bow(df, max_features=max_features)
+        
+    else:
+        raise ValueError(f"Unknown embedding method: {embedding_method}. Choose 'w2v', 'tfidf', or 'bow'.")
 
 
 
