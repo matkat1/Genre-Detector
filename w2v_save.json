@@ -1,0 +1,12 @@
+{
+  "data": {
+    "csv_path": "/content/drive/MyDrive/data_goodreads.csv",
+    "output_dir": "/content/drive/MyDrive/Genre_Detector/data/",
+    "output_filename": "w2v_300_emb.npz",
+    "sample_size": 300000
+  },
+  "model": {
+    "pretrained_w2v_name": "word2vec-google-news-300",
+    "max_len": 150
+  }
+}
