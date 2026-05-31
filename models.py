@@ -77,5 +77,79 @@ class MLP_basic(nn.Module):
     def forward(self, x):
         return self.net(x)
 
+class BiLSTMClassifier(nn.Module):
+    def __init__(self, pretrained_w2v, embedding_dim, hidden_dim, num_classes=30):
+        super(BiLSTMClassifier, self).__init__()
+        
+        weights = torch.FloatTensor(pretrained_w2v.vectors)
+        self.embedding = nn.Embedding.from_pretrained(weights, freeze=True, padding_idx=0)
+        
+        self.lstm = nn.LSTM(
+            input_size=embedding_dim,
+            hidden_size=hidden_dim,
+            num_layers=2,
+            batch_first=True,
+            bidirectional=True,
+            dropout=0.3
+        )
+        
+        self.fc = nn.Sequential(
+            nn.Linear(hidden_dim * 2, hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(hidden_dim, num_classes)
+        )
+        
+    def forward(self, text):
+        embedded = self.embedding(text)
+        lstm_out, (hidden, cell) = self.lstm(embedded)
+        
+        out_forward = lstm_out[:, -1, :self.lstm.hidden_size]
+        out_backward = lstm_out[:, 0, self.lstm.hidden_size:]
+        x = torch.cat((out_forward, out_backward), dim=1)
+        
+        logits = self.fc(x)
+        return logits
+
+class ResidualBlock(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        # Blok warstw, który nie zmienia wymiarowości wektora (dim -> dim)
+        self.block = nn.Sequential(
+            nn.Linear(dim, dim),
+            nn.BatchNorm1d(dim), # Dobra praktyka w ResNetach
+            nn.ReLU(),
+            nn.Linear(dim, dim),
+            nn.BatchNorm1d(dim)
+        )
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        # Główny koncept ResNet: H(x) = F(x) + x
+        return self.relu(self.block(x) + x)
 
 
+class ResNet_MLP(nn.Module):
+    def __init__(self, input_dim=300, hidden_dim=512, num_classes=30, num_blocks=3):
+        super().__init__()
+        
+        # 1. Warstwa wejściowa: rzutujemy wektor (np. 300) na stały wymiar ukryty (np. 512)
+        self.input_layer = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.BatchNorm1d(hidden_dim),
+            nn.ReLU()
+        )
+        
+        # 2. Wieża bloków residualnych (tutaj dane mają cały czas rozmiar hidden_dim)
+        self.res_blocks = nn.Sequential(
+            *[ResidualBlock(hidden_dim) for _ in range(num_blocks)]
+        )
+        
+        # 3. Warstwa wyjściowa (klasyfikator)
+        self.classifier = nn.Linear(hidden_dim, num_classes)
+
+    def forward(self, x):
+        out = self.input_layer(x)
+        out = self.res_blocks(out)
+        out = self.classifier(out)
+        return out
