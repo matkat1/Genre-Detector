@@ -1,0 +1,15 @@
+{
+    "project_name": "Genre_Detector",
+    "experiment_name": "mlp_baseline",
+    "embedding_method": "w2v",
+    "embedding_method_name": "word2vec-google-news-300",
+    "max_features": 300,
+    "test_size": 0.2,
+    "data_size": 10000,
+    "random_state": 42,
+    "batch_size": 64,
+    "lr": 0.001,
+    "epochs": 10,
+    "threshold": 0.5,
+    "use_pos_weight": true
+}
