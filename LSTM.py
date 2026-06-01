@@ -174,6 +174,6 @@ def experiment(X, y, pretrained_w2v_name='glove-wiki-gigaword-100'):
 
         print(f"Epoch {epoch+1:02d} | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | Val Micro-F1: {val_f1:.4f}")
 
-
+#stara
 X = load_X()
 experiment(X, y, pretrained_w2v_name='word2vec-google-news-300')
